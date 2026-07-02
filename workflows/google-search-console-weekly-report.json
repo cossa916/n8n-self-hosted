@@ -1,0 +1,104 @@
+{
+  "name": "Google Search Console - Weekly SEO Report",
+  "nodes": [
+    {
+      "id": "schedule-trigger",
+      "name": "Every Monday 8am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [1],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 0],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "site-url",
+              "name": "siteUrl",
+              "type": "string",
+              "value": "sc-domain:cheshire-landscape-gardener.com"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "top-queries",
+      "name": "Top Queries",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://www.googleapis.com/webmasters/v3/sites/{{ encodeURIComponent($json.siteUrl) }}/searchAnalytics/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"startDate\": \"{{ $now.minus({ days: 28 }).toFormat('yyyy-MM-dd') }}\",\n  \"endDate\": \"{{ $now.minus({ days: 3 }).toFormat('yyyy-MM-dd') }}\",\n  \"dimensions\": [\"query\"],\n  \"rowLimit\": 20\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "top-pages",
+      "name": "Top Pages",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://www.googleapis.com/webmasters/v3/sites/{{ encodeURIComponent($('Config').item.json.siteUrl) }}/searchAnalytics/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"startDate\": \"{{ $now.minus({ days: 28 }).toFormat('yyyy-MM-dd') }}\",\n  \"endDate\": \"{{ $now.minus({ days: 3 }).toFormat('yyyy-MM-dd') }}\",\n  \"dimensions\": [\"page\"],\n  \"rowLimit\": 20\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "format-report",
+      "name": "Format Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 0],
+      "parameters": {
+        "jsCode": "const queryRows = $('Top Queries').first().json.rows || [];\nconst pageRows = $input.first().json.rows || [];\nconst siteUrl = $('Config').first().json.siteUrl;\n\nconst pct = (v) => (v * 100).toFixed(1) + '%';\n\nconst lines = [];\nlines.push('# Search Console weekly report');\nlines.push(`Site: ${siteUrl}`);\nlines.push('Period: last 28 days (ending 3 days ago, to allow for GSC data delay)');\nlines.push('');\nlines.push('## Top queries');\nfor (const r of queryRows) {\n  lines.push(`- \"${r.keys[0]}\" — ${r.clicks} clicks, ${r.impressions} impressions, CTR ${pct(r.ctr)}, avg position ${r.position.toFixed(1)}`);\n}\nif (!queryRows.length) lines.push('- No query data for this period yet.');\nlines.push('');\nlines.push('## Top pages');\nfor (const r of pageRows) {\n  lines.push(`- ${r.keys[0]} — ${r.clicks} clicks, ${r.impressions} impressions, CTR ${pct(r.ctr)}`);\n}\nif (!pageRows.length) lines.push('- No page data for this period yet.');\n\nconst totals = queryRows.reduce(\n  (a, r) => ({ clicks: a.clicks + r.clicks, impressions: a.impressions + r.impressions }),\n  { clicks: 0, impressions: 0 }\n);\n\nreturn [\n  {\n    json: {\n      report: lines.join('\\n'),\n      totalClicks: totals.clicks,\n      totalImpressions: totals.impressions,\n    },\n  },\n];"
+      }
+    }
+  ],
+  "connections": {
+    "Every Monday 8am": {
+      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
+    },
+    "Config": {
+      "main": [[{ "node": "Top Queries", "type": "main", "index": 0 }]]
+    },
+    "Top Queries": {
+      "main": [[{ "node": "Top Pages", "type": "main", "index": 0 }]]
+    },
+    "Top Pages": {
+      "main": [[{ "node": "Format Report", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
