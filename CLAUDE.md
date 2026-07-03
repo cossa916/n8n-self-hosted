@@ -26,6 +26,10 @@ https://cheshire-landscape-gardener.com (WordPress + Divi builder, owner: Jason 
 
 ## SEO priority queue (from GSC, last 3 months)
 1. ~~/landscapers-cheshire/~~ — DONE 2026-07-03 (video, services, costs, areas, FAQ + schema)
-2. /garden-design-cheshire/ — 2,992 impressions, position ~58
-3. /landscape-gardener-wilmslow/ — 1,689 impressions, position ~28
-4. /landscape-gardener-alderley-edge/ — 1,308 impressions, position ~21
+2. ~~/garden-design-cheshire/~~ — DONE 2026-07-03 (video, 3 images, featured image, FAQ schema, fixed 301 link, CTA)
+3. ~~/landscape-gardener-wilmslow/~~ — DONE 2026-07-03 (Manchester Rd video, images, local content, FAQ + schema)
+4. ~~/landscape-gardener-alderley-edge/~~ — DONE 2026-07-03 (reel video, images, local content, FAQ + schema)
+
+Next candidates when owner wants more: /landscape-gardener-altrincham/ (1,774 imps,
+pos ~23), /landscape-gardener-warrington/ (827 imps, pos ~42), /garden-redesign-in-knutsford/
+(pos ~55). Owner should "Request indexing" in GSC for each updated URL.
